@@ -1,0 +1,47 @@
+---
+description: 系统结构解析规则 - 在编写代码前先了解项目的技术栈和工具链，优先使用系统内已有的工具包
+alwaysApply: true
+---
+
+# 系统结构解析规则
+
+在为当前项目编写代码之前，必须先了解并遵循项目已有的技术栈和工具链。
+
+## 需要了解的内容
+
+进入项目时，优先分析以下信息：
+
+- **系统框架 / 技术栈**：如 React、Vue、Next.js、Nuxt.js 等
+- **请求工具包**：如 axios、fetch 封装、umi-request 等
+- **日期处理工具**：如 dayjs、moment、date-fns 等
+- **组件库**：如 Ant Design、Element UI 等
+- **状态管理**：如 Redux、Zustand、Pinia、Vuex 等
+- **全局模块位置**：utils、hooks、constants、services 等目录结构
+- **格式化与代码规范配置**：ESLint、Prettier、.editorconfig 等
+- **项目文档**：README、CHANGELOG 等日志文件
+
+## 编码要求
+
+- **优先复用**：使用项目中已封装的工具方法，不重复造轮子
+- **风格一致**：新代码的风格、命名、目录结构需与项目现有代码保持一致
+- **禁止引入冲突依赖**：如项目用 dayjs，不要引入 moment；项目用 axios，不要引入 fetch 封装
+
+```typescript
+// ❌ 项目已有 dayjs，不要引入 moment
+import moment from 'moment';
+const date = moment().format('YYYY-MM-DD');
+
+// ✅ 使用项目已有的 dayjs
+import dayjs from 'dayjs';
+const date = dayjs().format('YYYY-MM-DD');
+```
+
+```typescript
+// ❌ 项目已有 request 封装，不要直接用 axios
+import axios from 'axios';
+const res = await axios.get('/api/data');
+
+// ✅ 使用项目内封装的 request
+import { request } from '@/utils/request';
+const res = await request.get('/api/data');
+```

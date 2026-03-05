@@ -1,0 +1,52 @@
+---
+description: 代码简写与 ES6+ 书写规范 - 同等效果优先简写，复杂逻辑保证可读与正确性
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: true
+---
+
+# 代码简写与 ES6+ 规范
+
+## 简写与可读性平衡
+
+- **同等效果优先简写**：如 `val != null && val !== '' ? val : '-'` 可写为 `val || '-'`。
+- **复杂逻辑不强行简写**：当逻辑或字段类型较复杂时，优先保证实现正确、易读，校验逻辑可写得更明确，不追求简写。
+
+```javascript
+// ✅ 简单场景：简写
+const display = val || '-';
+
+// ✅ 复杂场景：显式校验更清晰
+const display =
+  typeof val === 'number' && !Number.isNaN(val) ? String(val) : '-';
+```
+
+## ES6+ 书写约定
+
+- **声明**：优先 `const`，需重赋值再用 `let`，不用 `var`。
+- **空值兜底**：仅当“空值/未定义”才用默认值时用 `??`；`0`、`''`、`false` 也要保留时用 `??` 而非 `||`
+- **可选链**：访问可能为 `null`/`undefined` 的属性时用 `?.`，避免多层 `&&`。
+- **解构**：从对象/数组取多字段时用解构，函数多参数时可用解构或 rest。
+- **字符串**：拼接或插值用模板字符串 `` `...${x}...` ``。
+- **数组**：优先 `includes`、`find`、`findIndex`、`some`、`every` 等，少用手写循环查找。
+- **箭头函数**：简短回调、无 `this` 需求时用箭头函数；需要命名或复杂体时用普通函数。
+
+```javascript
+// ✅ 空值合并：0 和 '' 需要保留时用 ??
+const count = config.count ?? 10;
+const label = data.label ?? '未设置';
+
+// ✅ 可选链
+const name = user?.profile?.name ?? '-';
+
+// ✅ 解构与 rest
+const { id, name } = item;
+const [first, ...rest] = list;
+
+// ✅ 模板字符串
+const msg = `用户 ${name} 于 ${dayjs(date).format('YYYY-MM-DD')} 提交`;
+```
+
+## 注意事项
+
+- 使用 `||` 做默认值时，确认 `0`、`''`、`false` 被当作“无效”是符合业务的。
+- 逻辑复杂或多条件组合时，可拆成变量或提前 return，不必强行一行简写。
