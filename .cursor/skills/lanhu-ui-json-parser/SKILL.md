@@ -20,6 +20,8 @@ description: 解析蓝湖页面链接，使用项目根目录 `.lanhuConfig` 中
 
 1. 检查项目根目录是否存在 `.lanhuConfig`
 1. 读取其中的 `cookie`
+1. 同时读取其中的 `scale`，表示蓝湖设计稿相对于实际设备的倍率
+1. 如果 `scale` 缺失、为空、不是合法数字，则默认使用 `1`
 1. 如果没有 cookie，向用户索取，不要猜测
 1. 解析用户提供的蓝湖 URL，提取 `image_id` 和 `project_id`
 1. 用下面的接口拉取图片详情
@@ -38,6 +40,7 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 1. 结合用户提供的截图筛选出实际出现的图层
 1. 保存筛选结果到 `containerJson.json`
 1. 一次性收集组件生成所需信息
+1. 分析项目当前使用的样式技术，判断应生成 `css`、`less` 还是 `scss`
 1. 按项目技术栈和UI框架生成可扩展组件代码，因为第三方UI框架，有自带的class，如果你使用之后发现无符合，需要你自己去修改样式
 
 默认可直接调用这些脚本：
@@ -50,15 +53,28 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 ### Cookie
 
 - 默认从项目根目录 `.lanhuConfig` 读取 cookie
+- 同时从项目根目录 `.lanhuConfig` 读取 `scale`
 - 文件内容按下面结构处理：
 
 ```js
 {
-  cookie: 'your lanhu cookie'
+  cookie: 'your lanhu cookie',
+  scale: 1
 }
 ```
 
 - 如果文件不存在、字段缺失、或 cookie 为空，立即询问用户
+- `scale` 表示蓝湖设计稿相对于实际设备尺寸的倍率
+- 如果 `scale` 缺失、为空、不是数字或小于等于 `0`，默认按 `1` 处理
+- 在生成 CSS 或等效样式代码时，所有从蓝湖 JSON 中解析得到的像素值都要先除以 `scale`
+- 例如：`20px / 2 = 10px`
+
+### Scale
+
+- `scale` 只影响样式与尺寸换算，不影响图层查找、层级关系判断和截图筛选逻辑
+- 所有像素类字段在输出样式前都应按 `实际值 = 设计值 / scale` 计算
+- 常见字段包括但不限于：`width`、`height`、`x`、`y`、`radius`、`font.size`、`font.line`、`font.spacing`、`font.kerning`、`shadow.offsetX`、`shadow.offsetY`、`shadow.blurRadius`、`shadow.spread`、`image.size.width`、`image.size.height`
+- 如果除法后出现小数，优先保留合理精度，避免生成过长的小数样式值
 
 ### URL Parsing
 
@@ -134,6 +150,7 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 - 优先使用 `ddsOriginFrame`
 - 若不存在，退回使用 `layerOriginFrame`
 - 从中读取 `width`、`height`、`x`、`y`
+- 这些定位和尺寸字段在生成样式时都需要按 `scale` 进行换算
 
 颜色读取规则：
 
@@ -151,6 +168,7 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 - `opacity` 作为透明度
 - `type` 区分外阴影和内阴影（如 `内阴影`）
 - 多个阴影按数组顺序依次生成
+- 阴影中的所有像素值在生成样式时都需要按 `scale` 进行换算
 
 图片读取规则：
 
@@ -158,6 +176,7 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 - 优先使用 `image.svgUrl`，若不存在则使用 `image.imageUrl`
 - `image.size.width` 和 `image.size.height` 作为图片尺寸
 - 图层 `name` 可作为 `alt` 属性补充
+- 图片尺寸在生成样式或属性时也需要按 `scale` 进行换算
 
 ## Child Layer Filtering
 
@@ -179,9 +198,20 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 - 组件状态和交互需求
 - 技术栈
 - UI 框架
+- 样式方案是否需要严格跟随项目现有规范
 - 其他补充要求
 
 如果仓库结构中已经能推断技术栈或 UI 框架，先自行判断；只有无法判断时再询问用户。
+
+### Style Tech Detection
+
+- 生成样式代码前，先分析项目内已有配置与文件，判断当前项目使用的样式技术
+- 优先检查：`package.json`、构建配置、脚手架配置、页面/组件现有样式文件命名
+- 如果项目明确使用 `less`，则优先生成 `*.module.less`
+- 如果项目明确使用 `scss` 或 `sass`，则优先生成 `*.module.scss`
+- 如果项目无法明确判断使用 `less` 还是 `scss`，默认生成普通 `*.css`
+- 如果项目已经普遍使用 CSS Module，生成代码时应保持一致
+- 如果项目虽使用 `less` 或 `scss`，但明显未使用 CSS Module，则优先遵循项目现状；若无法判断是否使用模块化，再优先使用 CSS Module 方式生成
 
 ## Code Generation Rules
 
@@ -195,6 +225,10 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 - 在组件目录内输出主体代码
 - 对复杂区域或关联紧密的图层自动拆分子组件
 - 子组件放在 `components/` 目录下
+- 所有从蓝湖 JSON 中得到的像素类样式值，在输出前都必须先除以 `scale`
+- 样式文件类型应与项目当前使用的样式技术一致，优先复用项目已有方案
+- 如果检测到项目使用 `less` 或 `scss`，优先输出 CSS Module 风格的类名和样式文件
+- 如果无法判断项目使用的样式预处理器，则默认输出 `.css` 文件
 - 代码需要便于后续修改数据结构、状态和交互
 
 ## Output Expectations
@@ -220,9 +254,10 @@ node .cursor/skills/lanhu-ui-json-parser/scripts/fetch-lanhu-json.js --url "<lan
 行为：
 
 - 从项目根目录 `.lanhuConfig` 读取 cookie
+- 从项目根目录 `.lanhuConfig` 读取 `scale`，缺失时默认 `1`
 - 解析 `image_id` 和 `project_id`
 - 请求蓝湖接口并校验 `result.versions[0].json_url`
-- 下载 JSON 到 `.lanhuJson/`
+- 下载 JSON 到 `.lanhuJson/`，json名字 为 `SketchJSONURL-${date}`.json
 
 ### Analyze target layer
 
