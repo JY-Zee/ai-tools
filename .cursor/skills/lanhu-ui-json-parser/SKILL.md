@@ -38,7 +38,7 @@ https://lanhuapp.com/api/project/image?dds_status=1&image_id=${image_id}&project
 1. 结合用户提供的截图筛选出实际出现的图层
 1. 保存筛选结果到 `containerJson.json`
 1. 一次性收集组件生成所需信息
-1. 按项目技术栈生成可扩展组件代码
+1. 按项目技术栈和UI框架生成可扩展组件代码，因为第三方UI框架，有自带的class，如果你使用之后发现无符合，需要你自己去修改样式
 
 默认可直接调用这些脚本：
 
