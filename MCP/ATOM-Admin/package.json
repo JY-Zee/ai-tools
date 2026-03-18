@@ -1,0 +1,26 @@
+{
+  "name": "atom-admin-mcp",
+  "version": "1.0.0",
+  "description": "MCP 服务器：Atom 管理台数据获取",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "atom-admin": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "npx @modelcontextprotocol/inspector node --watch index.js"
+  },
+  "keywords": ["mcp", "atom-admin", "atom"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "ali-oss": "^6.20.0",
+    "moment": "^2.30.0",
+    "zod": "^3.23.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
