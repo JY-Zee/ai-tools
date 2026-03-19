@@ -149,7 +149,7 @@ server.tool(
 // 8. 获取飞行器固件版本
 server.tool(
   "get_aircraft_firmware_version",
-  "获取飞行器固件版本",
+  "获取飞行器固件版本，接口按 list 返回，无分页",
   {
     deviceId: z.string().describe("机型号 ID，来自 get_aircraft_models 返回的 value"),
   },

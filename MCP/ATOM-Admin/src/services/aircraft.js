@@ -25,6 +25,7 @@ export async function getAircraftModels() {
 
 /**
  * 获取飞行器固件版本
+ * 接口按 list 返回，无分页参数
  * @param {string} deviceId - 机型号 ID，来自 get_aircraft_models 返回的 value
  */
 export async function getAircraftFirmwareVersion(deviceId) {
@@ -36,7 +37,10 @@ export async function getAircraftFirmwareVersion(deviceId) {
 
   if (result.error) return result;
 
-  const list = Array.isArray(result.data) ? result.data : [];
+  // 接口返回 { list: [] }，取 list 作为数据源
+  let list = result.data?.list ?? result.data;
+  list = Array.isArray(list) ? list : [];
+
   const data = list.map((item) => ({
     ...item,
     label: item.version ?? "",

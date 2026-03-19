@@ -21,8 +21,9 @@ MCP/ATOM-Admin/
 │   │   └── oss.js        # 阿里云 OSS：STS 凭证、上传
 │   └── tools/            # 本地脚本（非 MCP 工具）
 │       ├── index.cjs     # 禁飞区数据爬取脚本
-│       └── group.cjs     # 用户组相关
-├── NoFlyZoneOrigin/      # 禁飞区源数据（CN/AF/HK/MO/TW.json），打包上传时使用
+│       └── group.cjs     # 给禁飞区数据分组相关
+├── data.json             # 禁飞区源数据
+├── NoFlyZoneOrigin/      # 已分类禁飞区源数据（CN/AF/HK/MO/TW.json），打包上传时使用
 └── *.tar.bz2             # 打包生成的禁飞区压缩包
 ```
 

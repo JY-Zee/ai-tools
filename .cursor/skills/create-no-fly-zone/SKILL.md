@@ -81,8 +81,8 @@ call_mcp_tool({ server: "user-atom-admin-mcp", toolName: "get_user_groups", argu
 
 ### 步骤 7：选择飞机固件版本
 
-1. 以 `params.deviceId` 为入参，调用 `get_aircraft_firmware_version` 获取固件版本列表
-2. 以 `label` 展示选项，要求用户**单选**
+1. 以 `params.deviceId` 为入参，调用 `get_aircraft_firmware_version` 获取固件版本列表（接口按 list 返回，无分页）
+2. **全部显示**：将返回的 `data` 中全部项以 `label` 展示为选项，不截断、不省略，要求用户**单选**
 3. 用户选择后：`params.minFlightVersion = 选中项的 label`
 
 ### 步骤 8：推送版本号
@@ -189,3 +189,8 @@ call_mcp_tool({ server: "user-atom-admin-mcp", toolName: "get_user_groups", argu
 - 步骤 7 依赖步骤 6 的 `deviceId`，必须按顺序执行
 - 自定义禁飞区 JSON 解析失败时，允许用户跳过，不强制填写
 - 步骤 11 依赖 NoFlyZoneOrigin 目录存在；打包上传前需确保 OSS 已初始化（可先调用 `init_aliyun_client`）
+
+## 列表展示规范
+
+- **步骤 2～7**：所有选项列表（用户组、iOS/Android/带屏控版本、飞机型号、固件版本）均需**全部显示**，不截断、不省略
+- 若用户反馈「选项太少」「数据漏了」，可提示用户手动输入选项值（如固件版本号），但需提醒其与后端已有数据一致，否则创建可能失败
