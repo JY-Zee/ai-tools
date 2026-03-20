@@ -39,6 +39,14 @@ function readCookie(configPath) {
   }
 
   const raw = fs.readFileSync(configPath, 'utf8');
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.cookie === 'string' && parsed.cookie.trim()) {
+      return parsed.cookie.trim();
+    }
+  } catch (_) {}
+
   const patterns = [
     /cookie\s*:\s*'([\s\S]*?)'/,
     /cookie\s*:\s*"([\s\S]*?)"/,
